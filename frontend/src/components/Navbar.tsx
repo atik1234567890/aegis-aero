@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const Navbar: React.FC<{ threatLevel: string; threatScore: number; isConnected: boolean; droneCount?: number }> = ({ threatLevel, threatScore, isConnected, droneCount = 3 }) => {
+const Navbar: React.FC<{ threatLevel: string; isConnected: boolean; droneCount?: number }> = ({ threatLevel, isConnected, droneCount = 3 }) => {
   const [time, setTime] = useState(new Date());
   const location = useLocation();
 

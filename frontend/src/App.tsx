@@ -9,7 +9,6 @@ import IncidentLog from './pages/IncidentLog';
 
 function App() {
   const [threatLevel, setThreatLevel] = useState('MEDIUM');
-  const [threatScore, setThreatScore] = useState(42);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
@@ -25,7 +24,6 @@ function App() {
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        setThreatScore(data.threat_score);
         setThreatLevel(data.threat_level);
       };
 
@@ -52,7 +50,7 @@ function App() {
           </div>
         )}
         
-        <Navbar threatLevel={threatLevel} threatScore={threatScore} isConnected={isConnected} />
+        <Navbar threatLevel={threatLevel} isConnected={isConnected} />
         
         <div className="flex-1 overflow-hidden">
           <Routes>

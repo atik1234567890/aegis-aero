@@ -8,7 +8,6 @@ import type { Module } from '../components/ModuleStatus';
 
 const Dashboard = () => {
   const [threatScore, setThreatScore] = useState(42);
-  const [threatLevel, setThreatLevel] = useState('MEDIUM');
   const [nexusAnalysis, setNexusAnalysis] = useState('Initializing security systems...');
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
@@ -26,7 +25,6 @@ const Dashboard = () => {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       setThreatScore(data.threat_score);
-      setThreatLevel(data.threat_level);
       setNexusAnalysis(data.nexus_analysis);
       if (data.alerts) setAlerts(data.alerts);
       
