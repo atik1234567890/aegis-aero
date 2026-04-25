@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+*.pt
+*.pth
+
+# Node
+node_modules/
+dist/
+.env.local
+.env.production
+.env.development
+
+# OS
+.DS_Store
