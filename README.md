@@ -1,6 +1,8 @@
 # AEGIS-AERO 🛡️ 
 Airport Security Intelligence Platform 
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-AEGIS--AERO-red?style=for-the-badge&logo=vercel)](https://aegis-aero.vercel.app)
+
 ## Overview 
 Advanced AI-powered security operations center for real-time airport threat detection. 
 
