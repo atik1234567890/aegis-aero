@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import client from '../api/client';
 
 interface Detection {
@@ -23,7 +23,6 @@ interface ScanResponse {
 
 const XRayScanner = () => {
   const [image, setImage] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState<ScanResponse | null>(null);
@@ -51,7 +50,6 @@ const XRayScanner = () => {
   };
 
   const processImageFile = (uploadedFile: File) => {
-    setFile(uploadedFile);
     const reader = new FileReader();
     reader.onload = (event) => {
       setImage(event.target?.result as string);
