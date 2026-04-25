@@ -7,3 +7,10 @@ pydantic
 httpx
 Pillow
 numpy
+sqlalchemy
+aiosqlite
+passlib[bcrypt]
+python-jose[cryptography]
+loguru
+google-generativeai
+psutil

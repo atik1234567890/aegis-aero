@@ -160,7 +160,7 @@ const XRayScanner = () => {
   }, [image, isScanning, isAnalyzing, results]);
 
   return (
-    <main className="p-6 flex flex-col gap-6 h-full overflow-hidden">
+    <main className="p-6 pt-20 flex flex-col gap-6 h-full overflow-hidden">
       <div className="flex gap-6 flex-1 min-h-0">
         {/* Left Side - Upload */}
         <div className="w-80 flex flex-col gap-4">

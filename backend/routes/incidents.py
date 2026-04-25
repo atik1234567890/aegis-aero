@@ -1,62 +1,56 @@
-from fastapi import APIRouter, Query
-from models.incident import Incident, IncidentNote, IncidentStatusUpdate
+from fastapi import APIRouter, Query, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update
+from models.incident import Incident, IncidentDB, IncidentCreate, IncidentStatusUpdate, IncidentNote
+from database import get_db
 from typing import List, Optional
-import random
-import time
+from datetime import datetime
 
 router = APIRouter(prefix="/api/incidents", tags=["incidents"])
-
-# Mock database
-mock_incidents = [
-    {
-        "id": "#AF3E21",
-        "timestamp": "2026-04-25 14:22:05",
-        "module": "DarkHawk",
-        "type": "Unidentified Drone",
-        "severity": "CRITICAL",
-        "location": "Sector 7 (North)",
-        "status": "RESOLVED",
-        "description": "Class IV multi-rotor drone detected within restricted perimeter. RF jamming initiated.",
-        "detectionMethod": "RF Signature + Acoustic"
-    },
-    {
-        "id": "#BB1290",
-        "timestamp": "2026-04-25 14:15:30",
-        "module": "CyberGuard",
-        "type": "GPS Spoofing",
-        "severity": "HIGH",
-        "location": "Approach Path Rwy 09",
-        "status": "INVESTIGATING",
-        "description": "Coordinated GPS drift detected affecting multiple landing aircraft. Signal source estimated NW.",
-        "detectionMethod": "Drift Index Analysis"
-    }
-]
 
 @router.get("", response_model=List[Incident])
 async def get_incidents(
     severity: Optional[str] = None,
     module: Optional[str] = None,
     status: Optional[str] = None,
-    limit: int = 20
+    limit: int = 20,
+    db: AsyncSession = Depends(get_db)
 ):
-    filtered = mock_incidents
+    query = select(IncidentDB)
     if severity and severity != "ALL":
-        filtered = [i for i in filtered if i["severity"] == severity]
+        query = query.where(IncidentDB.severity == severity)
     if module and module != "ALL MODULES":
-        filtered = [i for i in filtered if i["module"] == module]
+        query = query.where(IncidentDB.module == module)
     if status:
-        filtered = [i for i in filtered if i["status"] == status]
+        query = query.where(IncidentDB.status == status)
     
-    return filtered[:limit]
+    query = query.order_by(IncidentDB.timestamp.desc()).limit(limit)
+    result = await db.execute(query)
+    return result.scalars().all()
+
+@router.post("", response_model=Incident)
+async def create_incident(incident: IncidentCreate, db: AsyncSession = Depends(get_db)):
+    db_incident = IncidentDB(**incident.dict())
+    db.add(db_incident)
+    await db.commit()
+    await db.refresh(db_incident)
+    return db_incident
 
 @router.post("/{id}/resolve")
-async def resolve_incident(id: str):
+async def resolve_incident(id: str, db: AsyncSession = Depends(get_db)):
+    query = update(IncidentDB).where(IncidentDB.id == id).values(status="RESOLVED")
+    await db.execute(query)
+    await db.commit()
     return {"message": f"Incident {id} marked as resolved"}
 
 @router.put("/{id}/status")
-async def update_status(id: str, update: IncidentStatusUpdate):
-    return {"message": f"Incident {id} status updated to {update.status}"}
+async def update_status(id: str, update_data: IncidentStatusUpdate, db: AsyncSession = Depends(get_db)):
+    query = update(IncidentDB).where(IncidentDB.id == id).values(status=update_data.status)
+    await db.execute(query)
+    await db.commit()
+    return {"message": f"Incident {id} status updated to {update_data.status}"}
 
 @router.post("/{id}/note")
-async def add_note(id: str, note: IncidentNote):
-    return {"message": f"Note added to incident {id}"}
+async def add_note(id: str, note: IncidentNote, db: AsyncSession = Depends(get_db)):
+    # For now, just a mock note success, we could add a Notes table later
+    return {"message": f"Note added to incident {id}: {note.note}"}

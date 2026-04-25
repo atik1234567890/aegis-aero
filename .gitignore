@@ -15,3 +15,8 @@ dist/
 
 # OS
 .DS_Store
+
+# Project specific
+*.db
+backend/logs/
+backend/.env

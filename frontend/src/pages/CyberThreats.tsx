@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea,
-  PieChart, Pie, Cell
+  LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceArea,
+  PieChart, Pie, Cell, Tooltip
 } from 'recharts';
+import client from '../api/client';
 
 interface NetworkEvent {
   id: string;
@@ -13,64 +14,53 @@ interface NetworkEvent {
 }
 
 const CyberThreats = () => {
-  const [intrusionCount, setIntrusionCount] = useState(142);
+  const [intrusionCount, setIntrusionCount] = useState(0);
   const [gpsData, setGpsData] = useState<{ time: number; drift: number }[]>([]);
-  const [currentDrift, setCurrentDrift] = useState(47.3);
+  const [currentDrift, setCurrentDrift] = useState(1.2);
   const [networkLogs, setNetworkLogs] = useState<NetworkEvent[]>([]);
   const [metrics, setMetrics] = useState({
-    packetsPerSec: 1240,
-    blockedAttacks: 89,
+    packetsPerSec: 0,
+    blockedAttacks: 0,
     activeConnections: 542
   });
+  const [isSpoofingDetected, setIsSpoofingDetected] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Initial GPS data
     const initialGps = Array.from({ length: 60 }, (_, i) => ({
       time: i,
-      drift: 2 + Math.random() * 5
+      drift: 1.2
     }));
     setGpsData(initialGps);
 
-    const initialLogs: NetworkEvent[] = [
-      { id: '1', timestamp: '20:45:01', ip: '192.168.1.104', type: 'NORMAL_TRAFFIC', status: 'NORMAL' },
-      { id: '2', timestamp: '20:45:15', ip: '45.12.8.22', type: 'PORT_SCAN', status: 'BLOCKED' },
-    ];
-    setNetworkLogs(initialLogs);
-  }, []);
+    const fetchData = async () => {
+      try {
+        const response = await client.get('/api/cyber/status');
+        const data = response.data;
+        
+        setCurrentDrift(data.gps_drift);
+        setIsSpoofingDetected(data.spoofing_detected);
+        setNetworkLogs(data.network_events);
+        setIntrusionCount(data.blocked_attacks + 57); // offset for realism
+        setMetrics({
+          packetsPerSec: data.packets_per_sec,
+          blockedAttacks: data.blocked_attacks,
+          activeConnections: 542 + Math.floor(Math.random() * 20)
+        });
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIntrusionCount(prev => prev + (Math.random() > 0.7 ? 1 : 0));
-      setMetrics(prev => ({
-        packetsPerSec: Math.floor(1200 + Math.random() * 200),
-        blockedAttacks: prev.blockedAttacks + (Math.random() > 0.9 ? 1 : 0),
-        activeConnections: Math.floor(540 + Math.random() * 20)
-      }));
-
-      setCurrentDrift(prev => {
-        const targetDrift = Math.random() > 0.95 ? 40 + Math.random() * 20 : 2 + Math.random() * 8;
-        const newDrift = prev + (targetDrift - prev) * 0.2;
         setGpsData(prevData => {
-          const newData = [...prevData.slice(1), { time: prevData[prevData.length-1].time + 1, drift: newDrift }];
+          const newData = [...prevData.slice(1), { time: prevData[prevData.length-1].time + 1, drift: data.gps_drift }];
           return newData;
         });
-        return newDrift;
-      });
-
-      if (Math.random() > 0.5) {
-        const types: NetworkEvent['type'][] = ['ARP_POISON', 'PORT_SCAN', 'DOS_ATTEMPT', 'NORMAL_TRAFFIC'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        const newLog: NetworkEvent = {
-          id: Date.now().toString(),
-          timestamp: new Date().toLocaleTimeString(),
-          ip: `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`,
-          type: type,
-          status: type === 'NORMAL_TRAFFIC' ? 'NORMAL' : (Math.random() > 0.3 ? 'BLOCKED' : 'SUSPICIOUS')
-        };
-        setNetworkLogs(prev => [...prev.slice(-49), newLog]);
+      } catch (error) {
+        console.error("Failed to fetch cyber status", error);
       }
-    }, 1000);
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 2000);
 
     return () => clearInterval(interval);
   }, []);
@@ -108,7 +98,7 @@ const CyberThreats = () => {
   };
 
   return (
-    <main className="p-6 flex flex-col gap-6 h-full overflow-hidden">
+    <main className="p-6 pt-20 flex flex-col gap-6 h-full overflow-hidden">
       {/* Top - Network Status Bar */}
       <div className="flex gap-4 w-full">
         <div className="flex-1 bg-black/40 border border-gray-800 p-3 rounded-lg flex items-center justify-between">

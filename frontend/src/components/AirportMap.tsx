@@ -1,6 +1,20 @@
 import React from 'react';
 
-const AirportMap: React.FC = () => {
+interface Flight {
+  callsign: string;
+  origin_country: string;
+  longitude: number;
+  latitude: number;
+  altitude: number;
+  velocity: number;
+}
+
+interface AirportMapProps {
+  flights?: Flight[];
+  selectedCountry?: string;
+}
+
+const AirportMap: React.FC<AirportMapProps> = ({ flights = [], selectedCountry }) => {
   return (
     <div className="flex-1 bg-black/40 border border-gray-800 rounded-lg relative overflow-hidden min-h-[400px]">
       {/* Grid Background */}
@@ -26,39 +40,34 @@ const AirportMap: React.FC = () => {
         </div>
       </div>
       
-      {/* Threat Markers */}
+      {/* Flight Markers */}
+      {flights.map((flight, i) => (
+        <div 
+          key={i} 
+          className="absolute transition-all duration-1000"
+          style={{
+            left: `${((flight.longitude + 180) / 360) * 100}%`,
+            top: `${((90 - flight.latitude) / 180) * 100}%`
+          }}
+        >
+          <div className="relative group cursor-pointer">
+            <div className="w-2 h-2 bg-accent-green rounded-full shadow-[0_0_8px_#22c55e]"></div>
+            <div className="absolute top-4 left-0 hidden group-hover:block whitespace-nowrap text-[8px] font-mono text-white bg-black/90 p-2 border border-gray-700 z-50">
+              <div>CALLSIGN: {flight.callsign}</div>
+              <div>COUNTRY: {flight.origin_country}</div>
+              <div>ALTITUDE: {Math.round(flight.altitude)}m</div>
+              <div>SPEED: {Math.round(flight.velocity * 3.6)}km/h</div>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {/* Static Threat Markers (kept for flavor) */}
       <div className="absolute top-1/4 left-1/3 animate-bounce">
         <div className="relative">
           <div className="absolute -inset-4 bg-accent-red/20 rounded-full animate-ping"></div>
-          <div className="w-4 h-4 bg-accent-red rounded-full flex items-center justify-center text-[10px] font-bold shadow-[0_0_10px_#ef4444]">
+          <div className="w-3 h-3 bg-accent-red rounded-full flex items-center justify-center text-[8px] font-bold shadow-[0_0_10px_#ef4444]">
             !
-          </div>
-          <div className="absolute top-6 left-0 whitespace-nowrap text-[10px] font-mono text-accent-red bg-black/80 px-1 border border-accent-red">
-            DRONE DETECTED
-          </div>
-        </div>
-      </div>
-      
-      <div className="absolute bottom-1/3 right-1/4">
-        <div className="relative">
-          <div className="absolute -inset-4 bg-accent-amber/20 rounded-full animate-pulse"></div>
-          <div className="w-4 h-4 bg-accent-amber rounded-full flex items-center justify-center text-[10px] font-bold shadow-[0_0_10px_#f59e0b]">
-            ?
-          </div>
-          <div className="absolute top-6 left-0 whitespace-nowrap text-[10px] font-mono text-accent-amber bg-black/80 px-1 border border-accent-amber">
-            GPS ANOMALY
-          </div>
-        </div>
-      </div>
-      
-      <div className="absolute top-1/2 right-1/2">
-        <div className="relative">
-          <div className="absolute -inset-4 bg-accent-green/20 rounded-full animate-pulse"></div>
-          <div className="w-4 h-4 bg-accent-green rounded-full flex items-center justify-center text-[10px] font-bold shadow-[0_0_10px_#22c55e]">
-            P
-          </div>
-          <div className="absolute top-6 left-0 whitespace-nowrap text-[10px] font-mono text-accent-green bg-black/80 px-1 border border-accent-green">
-            PERIMETER OK
           </div>
         </div>
       </div>
@@ -67,7 +76,10 @@ const AirportMap: React.FC = () => {
       <div className="scan-line"></div>
       
       <div className="absolute bottom-4 left-4 text-[10px] font-mono text-gray-500">
-        RADAR FEED: ACTIVE | SECTOR: NORTH-EAST
+        RADAR FEED: ACTIVE | {selectedCountry ? `COUNTRY: ${selectedCountry.toUpperCase()}` : 'SECTOR: GLOBAL'}
+      </div>
+      <div className="absolute top-4 right-4 text-[10px] font-mono text-accent-green">
+        TRACKING: {flights.length} OBJECTS
       </div>
     </div>
   );
